@@ -3,11 +3,12 @@ use std::io;
 
 use crate::mmu::constants::*;
 use crate::mmu::effects::CartridgeEffects;
-use crate::mmu::huc1::initialize_huc1;
-use crate::mmu::mbc1::initialize_mbc1;
-use crate::mmu::mbc3::initialize_mbc3;
-use crate::mmu::mbc5::initialize_mbc5;
+use crate::mmu::huc1::{HUC1Snapshot, initialize_huc1};
+use crate::mmu::mbc1::{MBC1Snapshot, initialize_mbc1};
+use crate::mmu::mbc3::{MBC3Snapshot, initialize_mbc3};
+use crate::mmu::mbc5::{MBC5Snapshot, initialize_mbc5};
 use crate::mmu::mbc_rom_only::initialize_mbc_rom_only;
+use bincode::{Decode, Encode};
 
 #[derive(Debug, Clone)]
 pub struct CartridgeHeader {
@@ -27,14 +28,34 @@ pub struct Cartridge {
     pub effects: Box<dyn CartridgeEffects>
 }
 
+#[derive(Encode, Decode)]
+pub enum MBCSnapshot {
+    MBC1(MBC1Snapshot),
+    MBC3(MBC3Snapshot),
+    MBC5(MBC5Snapshot),
+    HUC1(HUC1Snapshot),
+    RomOnly
+}
+
+#[derive(Encode, Decode)]
+pub struct CartridgeMapperSnapshot {
+    pub ram: Vec<u8>,
+    pub mbc: MBCSnapshot
+}
+
 pub trait CartridgeMapper: std::fmt::Debug {
     fn read_rom(&self, address: u16) -> u8;
     fn write_rom(&mut self, address: u16, value: u8);
     fn read_ram(&self, address: u16) -> u8;
     fn write_ram(&mut self, address: u16, value: u8);
+
     fn get_cartridge(&self) -> &Cartridge;
     fn set_cartridge_ram(&mut self, ram: Vec<u8>);
+    
     fn get_ram_bank(&self) -> u8;
+
+    fn get_snapshot(&self) -> CartridgeMapperSnapshot;
+    fn apply_snapshot(&mut self, snapshot: CartridgeMapperSnapshot);
 }
 
 const SUPPORTED_CARTRIDGE_TYPES: [u8; 16] = [CART_TYPE_ROM_ONLY,

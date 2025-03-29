@@ -1,5 +1,6 @@
 use crate::emulator::{is_cgb, Emulator};
 use crate::utils::is_bit_set;
+use bincode::{Encode, Decode};
 
 pub struct SerialState {
     pub data: u8,
@@ -9,6 +10,16 @@ pub struct SerialState {
     pub transfer_enabled: bool,
     pub bits_transferred: u8,
     pub serial_exchange: fn(bool) -> bool
+}
+
+#[derive(Encode, Decode)]
+pub struct SerialSnapshot {
+    pub data: u8,
+    pub clock: u16,
+    pub is_high_speed_clock: bool,
+    pub is_master: bool,
+    pub transfer_enabled: bool,
+    pub bits_transferred: u8
 }
 
 fn serial_disconnected_exchange(_: bool) -> bool {
@@ -27,6 +38,26 @@ pub fn initialize_serial() -> SerialState {
         bits_transferred: 0,
         serial_exchange: serial_disconnected_exchange
     }
+}
+
+pub fn as_serial_snapshot(serial: &SerialState) -> SerialSnapshot {
+    SerialSnapshot {
+        data: serial.data,
+        clock: serial.clock,
+        is_high_speed_clock: serial.is_high_speed_clock,
+        is_master: serial.is_master,
+        transfer_enabled: serial.transfer_enabled,
+        bits_transferred: serial.bits_transferred
+    }
+}
+
+pub fn apply_snapshot(emulator: &mut Emulator, snapshot: SerialSnapshot) {
+    emulator.serial.data = snapshot.data;
+    emulator.serial.clock = snapshot.clock;
+    emulator.serial.is_high_speed_clock = snapshot.is_high_speed_clock;
+    emulator.serial.is_master = snapshot.is_master;
+    emulator.serial.transfer_enabled = snapshot.transfer_enabled;
+    emulator.serial.bits_transferred = snapshot.bits_transferred;
 }
 
 fn get_m_cycle_clock_rate(emulator: &Emulator) -> u16 {

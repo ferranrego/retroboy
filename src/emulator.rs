@@ -1,20 +1,20 @@
 use crate::apu;
-use crate::apu::{initialize_apu, ApuState};
+use crate::apu::{initialize_apu, ApuState, ApuSnapshot};
 use crate::cheats::{initialize_cheats, CheatState};
-use crate::cpu::{self, initialize_cpu, timers, CpuState};
+use crate::cpu::{self, initialize_cpu, timers, CpuState, CpuSnapshot};
 use crate::cpu::interrupts::InterruptRegisters;
 use crate::cpu::timers::TimerRegisters;
 use crate::cpu::hdma::{HDMAState, initialize_hdma};
 use crate::dma;
 use crate::dma::{initialize_dma, DMAState};
-use crate::gpu::{self, initialize_gpu, GpuState};
+use crate::gpu::{self, initialize_gpu, GpuState, GpuSnapshot};
 use crate::keys::{initialize_keys, KeyState};
-use crate::mmu;
-use crate::mmu::{Memory, initialize_memory};
-use crate::serial::{self, initialize_serial, SerialState};
+use crate::mmu::{self, Memory, MemorySnapshot, initialize_memory};
+use crate::serial::{self, initialize_serial, SerialState, SerialSnapshot};
 use crate::speed_switch::{initialize_speed_switch, SpeedSwitch};
 use std::cell::{Ref, RefMut};
 use std::io;
+use bincode::{Encode, Decode};
 
 pub use crate::mmu::effects::CartridgeEffects;
 pub use crate::mmu::{CartridgeHeader, RTCState};
@@ -41,6 +41,20 @@ pub struct Emulator {
     pub mode: Mode,
     pub speed_switch: SpeedSwitch,
     pub processor_test_mode: bool
+}
+
+#[derive(Encode, Decode)]
+pub struct EmulatorSnapshot {
+    pub cpu: CpuSnapshot,
+    pub interrupts: InterruptRegisters,
+    pub timers: TimerRegisters,
+    pub memory: MemorySnapshot,
+    pub gpu: GpuSnapshot,
+    pub apu: ApuSnapshot,
+    pub dma: DMAState,
+    pub hdma: HDMAState,
+    pub serial: SerialSnapshot,
+    pub speed_switch: SpeedSwitch
 }
 
 pub fn initialize_emulator(render: fn(&[u8])) -> Emulator {

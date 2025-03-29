@@ -1,8 +1,9 @@
 use crate::mmu::bank_utils::{banked_read, banked_write};
-use crate::mmu::cartridge::{Cartridge, CartridgeMapper};
+use crate::mmu::cartridge::{Cartridge, CartridgeMapper, CartridgeMapperSnapshot, MBCSnapshot};
 use crate::mmu::constants::*;
+use bincode::{Decode, Encode};
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct RTCState {
     pub milliseconds: u16,
     pub seconds: u8,
@@ -17,6 +18,15 @@ pub struct RTCState {
 #[derive(Debug)]
 pub struct MBC3 {
     cartridge: Cartridge,
+    rom_bank_number: u8,
+    ram_rtc_enabled: bool,
+    ram_rtc_selection: u8,
+    rtc_state: RTCState,
+    rtc_latch: u8,
+}
+
+#[derive(Encode, Decode)]
+pub struct MBC3Snapshot {
     rom_bank_number: u8,
     ram_rtc_enabled: bool,
     ram_rtc_selection: u8,
@@ -259,6 +269,33 @@ impl CartridgeMapper for MBC3 {
 
     fn get_ram_bank(&self) -> u8 {
         self.ram_rtc_selection
+    }
+
+    fn get_snapshot(&self) -> CartridgeMapperSnapshot {
+        CartridgeMapperSnapshot {
+            ram: self.cartridge.ram.clone(),
+            mbc: MBCSnapshot::MBC3(MBC3Snapshot {
+                rom_bank_number: self.rom_bank_number,
+                ram_rtc_enabled: self.ram_rtc_enabled,
+                ram_rtc_selection: self.ram_rtc_selection,
+                rtc_state: self.rtc_state.clone(),
+                rtc_latch: self.rtc_latch,
+            })
+        }
+    }
+
+    fn apply_snapshot(&mut self, snapshot: CartridgeMapperSnapshot) {
+        if let MBCSnapshot::MBC3(snapshot_data) = snapshot.mbc {
+            self.rom_bank_number = snapshot_data.rom_bank_number;
+            self.ram_rtc_enabled = snapshot_data.ram_rtc_enabled;
+            self.ram_rtc_selection = snapshot_data.ram_rtc_selection;
+            self.rtc_state = snapshot_data.rtc_state;
+            self.rtc_latch = snapshot_data.rtc_latch;
+
+            self.cartridge.ram = snapshot.ram;
+        } else {
+            panic!("Invalid snapshot type for MBC3");
+        }
     }
 }
 

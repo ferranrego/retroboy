@@ -8,8 +8,9 @@ use crate::gpu::sprites::{collect_scanline_sprites, Sprite};
 use crate::gpu::utils::{get_lcd_enabled_mode, get_window_enabled_mode};
 use crate::utils::get_t_cycle_increment;
 use crate::utils::is_bit_set;
+use bincode::{Encode, Decode};
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct GpuRegisters {
     pub lcdc: u8,
     pub scy: u8,
@@ -33,6 +34,15 @@ pub struct GpuState {
     pub registers: GpuRegisters,
     pub frame_buffer: Vec<u8>,
     pub sprite_buffer: Vec<Sprite>,
+    pub video_ram: [u8; 0x4000],
+    pub object_attribute_memory: [u8; 0xa0]
+}
+
+#[derive(Debug, Encode, Decode)]
+pub struct GpuSnapshot {
+    pub mode: u8,
+    pub mode_clock: u16,
+    pub registers: GpuRegisters,
     pub video_ram: [u8; 0x4000],
     pub object_attribute_memory: [u8; 0xa0]
 }
@@ -86,6 +96,27 @@ pub fn initialize_gpu() -> GpuState {
         video_ram: [0; 0x4000],
         object_attribute_memory: [0; 0xa0]
     }
+}
+
+pub fn as_gpu_snapshot(gpu_state: &GpuState) -> GpuSnapshot {
+    GpuSnapshot {
+        mode: gpu_state.mode,
+        mode_clock: gpu_state.mode_clock,
+        registers: gpu_state.registers.clone(),
+        video_ram: gpu_state.video_ram,
+        object_attribute_memory: gpu_state.object_attribute_memory
+    }
+}
+
+pub fn apply_snapshot(emulator: &mut Emulator, snapshot: GpuSnapshot) {
+    emulator.gpu.mode = snapshot.mode;
+    emulator.gpu.mode_clock = snapshot.mode_clock;
+    emulator.gpu.registers = snapshot.registers;
+    emulator.gpu.video_ram = snapshot.video_ram;
+    emulator.gpu.object_attribute_memory = snapshot.object_attribute_memory;
+
+    emulator.gpu.sprite_buffer.clear();
+    emulator.gpu.frame_buffer = initialize_blank_frame();
 }
 
 fn fire_vblank_interrupt(emulator: &mut Emulator) {

@@ -1,9 +1,9 @@
 use crate::mmu::bank_utils::{banked_read, banked_write};
-use crate::mmu::cartridge::{Cartridge, CartridgeMapper};
+use crate::mmu::cartridge::{Cartridge, CartridgeMapper, CartridgeMapperSnapshot, MBCSnapshot};
 use crate::mmu::constants::*;
+use bincode::{Decode, Encode};
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Clone, Debug, PartialEq, Encode, Decode)]
 pub enum MBCMode {
     ROM,
     RAM
@@ -12,6 +12,14 @@ pub enum MBCMode {
 #[derive(Debug)]
 pub struct MBC1 {
     cartridge: Cartridge,
+    ram_enabled: bool,
+    rom_bank_number: u8,
+    ram_bank_number: u8,
+    mode: MBCMode,
+}
+
+#[derive(Encode, Decode)]
+pub struct MBC1Snapshot {
     ram_enabled: bool,
     rom_bank_number: u8,
     ram_bank_number: u8,
@@ -108,6 +116,31 @@ impl CartridgeMapper for MBC1 {
     
     fn get_ram_bank(&self) -> u8 {
         self.ram_bank_number
+    }
+
+    fn get_snapshot(&self) -> CartridgeMapperSnapshot {
+        CartridgeMapperSnapshot {
+            ram: self.cartridge.ram.clone(),
+            mbc: MBCSnapshot::MBC1(MBC1Snapshot {
+                ram_enabled: self.ram_enabled,
+                rom_bank_number: self.rom_bank_number,
+                ram_bank_number: self.ram_bank_number,
+                mode: self.mode.clone(),
+            })
+        }
+    }
+
+    fn apply_snapshot(&mut self, snapshot: CartridgeMapperSnapshot) {
+        if let MBCSnapshot::MBC1(snapshot_data) = snapshot.mbc {
+            self.ram_enabled = snapshot_data.ram_enabled;
+            self.rom_bank_number = snapshot_data.rom_bank_number;
+            self.ram_bank_number = snapshot_data.ram_bank_number;
+            self.mode = snapshot_data.mode;
+        } else {
+            panic!("Invalid snapshot type for MBC1");
+        }
+        
+        self.cartridge.ram = snapshot.ram;
     }
 }
 

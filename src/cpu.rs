@@ -1,6 +1,7 @@
 use crate::emulator::Emulator;
+use bincode::{Encode, Decode};
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct Registers {
     pub a: u8,
     pub b: u8,
@@ -21,7 +22,7 @@ pub struct Clock {
     total_clock_cycles: u32
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Encode, Decode)]
 pub struct Interrupts {
     enable_delay: u8,
     disable_delay: u8,
@@ -51,6 +52,14 @@ pub struct CpuState {
     pub halt_bug: bool,
     pub interrupts: Interrupts,
     pub opcode_bus_activity: Vec<Option<BusActivityEntry>>
+}
+
+#[derive(Debug, Encode, Decode)]
+pub struct CpuSnapshot {
+    pub registers: Registers,
+    pub halted: bool,
+    pub halt_bug: bool,
+    pub interrupts: Interrupts,
 }
 
 pub enum Register {
@@ -102,6 +111,23 @@ pub fn initialize_cpu() -> CpuState {
         },
         opcode_bus_activity: Vec::new()
     }
+}
+
+pub fn as_cpu_snapshot(cpu_state: &CpuState) -> CpuSnapshot {
+    CpuSnapshot {
+        registers: cpu_state.registers.clone(),
+        halted: cpu_state.halted,
+        halt_bug: cpu_state.halt_bug,
+        interrupts: cpu_state.interrupts.clone()
+    }
+}
+
+pub fn apply_snapshot(emulator: &mut Emulator, snapshot: CpuSnapshot) {
+    emulator.cpu.registers = snapshot.registers;
+    emulator.cpu.halted = snapshot.halted;
+    emulator.cpu.halt_bug = snapshot.halt_bug;
+    emulator.cpu.interrupts = snapshot.interrupts.clone();
+    emulator.cpu.clock.instruction_clock_cycles = 0;
 }
 
 pub fn read_next_instruction_byte(emulator: &mut Emulator) -> u8 {

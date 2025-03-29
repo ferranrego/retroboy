@@ -6,6 +6,7 @@ use crate::apu::pulse::{initialize_pulse_channel, reset_pulse_channel, PulseChan
 use crate::apu::utils::{bounded_wrapping_add, as_dac_output};
 use crate::emulator::{in_color_bios, is_cgb, Emulator};
 use crate::utils::{get_bit, get_t_cycle_increment, is_bit_set};
+use bincode::{Decode, Encode};
 
 #[derive(Debug)]
 pub struct ApuState {
@@ -29,6 +30,21 @@ pub struct ApuState {
     pub enqueue_rate: u32
 }
 
+#[derive(Encode, Decode)]
+pub struct ApuSnapshot {
+    pub enabled: bool,
+    pub sound_panning: u8,
+    pub master_volume: u8,
+    pub channel1: PulseChannel,
+    pub channel2: PulseChannel,
+    pub channel3: WaveChannel,
+    pub channel4: NoiseChannel,
+    pub divider_apu: u8,
+    pub last_divider_time: u8,
+    pub audio_buffer_clock: u8,
+    pub channel_clock: u8
+}
+
 pub fn initialize_apu() -> ApuState {
     ApuState {
         enabled: false,
@@ -50,6 +66,36 @@ pub fn initialize_apu() -> ApuState {
         summed_channel4_sample: 0.0,
         enqueue_rate: CPU_RATE / DEFAULT_SAMPLE_RATE
     }
+}
+
+pub fn as_apu_snapshot(apu: &ApuState) -> ApuSnapshot {
+    ApuSnapshot {
+        enabled: apu.enabled,
+        sound_panning: apu.sound_panning,
+        master_volume: apu.master_volume,
+        channel1: apu.channel1.clone(),
+        channel2: apu.channel2.clone(),
+        channel3: apu.channel3.clone(),
+        channel4: apu.channel4.clone(),
+        divider_apu: apu.divider_apu,
+        last_divider_time: apu.last_divider_time,
+        audio_buffer_clock: apu.audio_buffer_clock,
+        channel_clock: apu.channel_clock
+    }
+}
+
+pub fn apply_snapshot(emulator: &mut Emulator, apu_snapshot: ApuSnapshot) {
+    emulator.apu.enabled = apu_snapshot.enabled;
+    emulator.apu.sound_panning = apu_snapshot.sound_panning;
+    emulator.apu.master_volume = apu_snapshot.master_volume;
+    emulator.apu.channel1 = apu_snapshot.channel1;
+    emulator.apu.channel2 = apu_snapshot.channel2;
+    emulator.apu.channel3 = apu_snapshot.channel3;
+    emulator.apu.channel4 = apu_snapshot.channel4;
+    emulator.apu.divider_apu = apu_snapshot.divider_apu;
+    emulator.apu.last_divider_time = apu_snapshot.last_divider_time;
+    emulator.apu.audio_buffer_clock = apu_snapshot.audio_buffer_clock;
+    emulator.apu.channel_clock = apu_snapshot.channel_clock;
 }
 
 pub fn reset_apu(emulator: &mut Emulator) {
