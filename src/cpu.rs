@@ -113,7 +113,7 @@ pub fn initialize_cpu() -> CpuState {
     }
 }
 
-pub fn as_cpu_snapshot(cpu_state: &CpuState) -> CpuSnapshot {
+pub fn as_snapshot(cpu_state: &CpuState) -> CpuSnapshot {
     CpuSnapshot {
         registers: cpu_state.registers.clone(),
         halted: cpu_state.halted,

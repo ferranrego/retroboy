@@ -98,7 +98,7 @@ pub fn initialize_gpu() -> GpuState {
     }
 }
 
-pub fn as_gpu_snapshot(gpu_state: &GpuState) -> GpuSnapshot {
+pub fn as_snapshot(gpu_state: &GpuState) -> GpuSnapshot {
     GpuSnapshot {
         mode: gpu_state.mode,
         mode_clock: gpu_state.mode_clock,

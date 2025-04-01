@@ -11,7 +11,7 @@ pub enum InterruptType {
     JoypadPress
 }
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Clone, Encode, Decode, Debug)]
 pub struct InterruptRegisters {
     pub enabled: u8,
     pub flags: u8

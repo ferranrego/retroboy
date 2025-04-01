@@ -68,7 +68,7 @@ pub fn initialize_apu() -> ApuState {
     }
 }
 
-pub fn as_apu_snapshot(apu: &ApuState) -> ApuSnapshot {
+pub fn as_snapshot(apu: &ApuState) -> ApuSnapshot {
     ApuSnapshot {
         enabled: apu.enabled,
         sound_panning: apu.sound_panning,

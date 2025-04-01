@@ -43,13 +43,20 @@ pub fn initialize_memory() -> Memory {
     }
 }
 
-pub fn as_memory_snapshot(memory: &Memory) -> MemorySnapshot {
+pub fn as_snapshot(memory: &Memory) -> MemorySnapshot {
     MemorySnapshot {
         working_ram: memory.working_ram,
         zero_page_ram: memory.zero_page_ram,
         svbk: memory.svbk,
         cartridge: memory.cartridge_mapper.get_snapshot()
     }
+}
+
+pub fn apply_snapshot(emulator: &mut Emulator, snapshot: MemorySnapshot) {
+    emulator.memory.working_ram = snapshot.working_ram;
+    emulator.memory.zero_page_ram = snapshot.zero_page_ram;
+    emulator.memory.svbk = snapshot.svbk;
+    emulator.memory.cartridge_mapper.apply_snapshot(snapshot.cartridge);
 }
 
 pub fn load_bios(emulator: &mut Emulator) {

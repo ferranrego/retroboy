@@ -40,7 +40,7 @@ pub fn initialize_serial() -> SerialState {
     }
 }
 
-pub fn as_serial_snapshot(serial: &SerialState) -> SerialSnapshot {
+pub fn as_snapshot(serial: &SerialState) -> SerialSnapshot {
     SerialSnapshot {
         data: serial.data,
         clock: serial.clock,

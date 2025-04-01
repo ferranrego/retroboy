@@ -4,13 +4,13 @@ use crate::mmu;
 use crate::utils::is_bit_set;
 use bincode::{Encode, Decode};
 
-#[derive(Encode, Decode, Debug, PartialEq, Eq)]
+#[derive(Clone, Encode, Decode, Debug, PartialEq, Eq)]
 pub enum VRAMTransferMode {
     GeneralPurpose,
     HBlank
 }
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Clone, Encode, Decode, Debug)]
 pub struct HDMAState {
     pub hdma1: u8,
     pub hdma2: u8,

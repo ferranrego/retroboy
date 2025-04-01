@@ -2,7 +2,7 @@ use crate::emulator::{is_cgb, Emulator};
 use crate::utils::is_bit_set;
 use bincode::{Encode, Decode};
 
-#[derive(Encode, Decode)]
+#[derive(Clone, Encode, Decode)]
 pub struct SpeedSwitch {
     pub cgb_double_speed: bool,
     pub armed: bool

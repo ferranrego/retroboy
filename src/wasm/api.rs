@@ -6,9 +6,9 @@ use crate::emulator::CartridgeHeader;
 use crate::keys::{self, Key};
 use crate::wasm::emulator_settings::EmulatorSettings;
 use crate::wasm::rom_metadata::{RomMetadata, RomMetadataResult};
+use crate::wasm::save_state_result::SaveStateResult;
 use crate::wasm::wasm_cartridge_effects::WasmCartridgeEffects;
 use crate::wasm::wasm_rtc_state::WasmRTCState;
-use bincode::{config, Decode, Encode};
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 
@@ -184,16 +184,27 @@ pub fn unregister_cheat(cheat_id: &str) {
     })
 }
 
-#[derive(Encode, Decode, PartialEq, Debug)]
-struct MyStruct {
-    field1: String,
-    field2: i32,
+#[wasm_bindgen(js_name = encodeEmulatorState)]
+pub fn encode_emulator_state() -> SaveStateResult {
+    EMULATOR.with(|emulator_cell| {
+        let emulator = emulator_cell.borrow();
+        match emulator::encode(&emulator) {
+            Ok(snapshot) => SaveStateResult::new(None, Some(snapshot)),
+            Err(e) => SaveStateResult::new(Some(e.to_string()), None)
+        }
+    })
 }
 
-#[wasm_bindgen(js_name = encodeSomeState)]
-pub fn encode_some_state() -> Vec<u8> {
-    let config = config::standard();
-    let my_struct = MyStruct { field1: "Hello".to_string(), field2: 42 };
-    let encoded: Vec<u8> = bincode::encode_to_vec(&my_struct, config).unwrap();
-    encoded
+#[wasm_bindgen(js_name = decodeEmulatorState)]
+pub fn decode_emulator_state(data: &[u8]) -> Option<String> {
+    EMULATOR.with(|emulator_cell| {
+        let mut emulator = emulator_cell.borrow_mut();
+        match emulator::decode(data) {
+            Ok(snapshot) => {
+                emulator::apply_snapshot(&mut emulator, snapshot);
+                None
+            }
+            Err(e) => Some(e.to_string())
+        }
+    })
 }
