@@ -291,11 +291,11 @@ impl CartridgeMapper for MBC3 {
             self.ram_rtc_selection = snapshot_data.ram_rtc_selection;
             self.rtc_state = snapshot_data.rtc_state;
             self.rtc_latch = snapshot_data.rtc_latch;
-
-            self.cartridge.ram = snapshot.ram;
         } else {
             panic!("Invalid snapshot type for MBC3");
         }
+
+        self.cartridge.ram = snapshot.ram;
     }
 }
 

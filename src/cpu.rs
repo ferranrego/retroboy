@@ -127,7 +127,6 @@ pub fn apply_snapshot(emulator: &mut Emulator, snapshot: CpuSnapshot) {
     emulator.cpu.halted = snapshot.halted;
     emulator.cpu.halt_bug = snapshot.halt_bug;
     emulator.cpu.interrupts = snapshot.interrupts.clone();
-    emulator.cpu.clock.instruction_clock_cycles = 0;
 }
 
 pub fn read_next_instruction_byte(emulator: &mut Emulator) -> u8 {
