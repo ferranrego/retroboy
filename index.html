@@ -1,162 +1,119 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><link rel="icon" href="/retroboy/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000000"/><meta name="description" content="Web site created using create-react-app"/><link rel="apple-touch-icon" href="/retroboy/logo192.png"/><link rel="manifest" href="/retroboy/manifest.json"/><title>Retro Boy</title><script defer="defer" src="/retroboy/static/js/main.924a52ff.js"></script></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script type="module">
-  // Load the Farcaster Frames SDK from a CDN.
-  import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
-  // When the window has loaded, signal that your app is ready.
-  window.addEventListener('load', async () => {
-    console.log("App loaded: calling sdk.actions.ready()");
-    await sdk.actions.ready();
-  });
-</script>
-<script>
-  // Wait for the page (and hopefully the emulator) to fully load.
-  window.addEventListener('load', function() {
-    // A short delay to help ensure all scripts and elements are ready.
-    setTimeout(async function() {
-      console.log("Attempting to load default ROM...");
-      try {
-        // Fetch the ROM file.
-        const response = await fetch('https://ferranrego.github.io/retroboy/roms/default.gb');
-        if (!response.ok) {
-          throw new Error("Network response was not ok: " + response.status);
-        }
-        const buffer = await response.arrayBuffer();
-        const romData = new Uint8Array(buffer);
-        
-        // Try method 1: Check if a global 'retroboy' object with a loadROM method exists.
-        if (window.retroboy && typeof window.retroboy.loadROM === 'function') {
-          window.retroboy.loadROM(romData);
-          console.log("Default ROM loaded via retroboy.loadROM()");
-          return;
-        }
-        
-        // Try method 2: Check for an 'emulator' global object with a loadROM function.
-        if (window.emulator && typeof window.emulator.loadROM === 'function') {
-          window.emulator.loadROM(romData);
-          console.log("Default ROM loaded via emulator.loadROM()");
-          return;
-        }
-        
-        // Try method 3: If there’s a file input element for ROM loading, simulate a file selection.
-        var fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) {
-          // Create a Blob and then a File from the ROM data.
-          const blob = new Blob([romData], { type: "application/octet-stream" });
-          const file = new File([blob], "default.gb", { type: "application/octet-stream" });
-          // Create a DataTransfer to mimic a user selecting the file.
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          fileInput.files = dataTransfer.files;
-          // Dispatch a change event to trigger the ROM load.
-          var event = new Event('change', { bubbles: true });
-          fileInput.dispatchEvent(event);
-          console.log("Default ROM loaded by simulating file input change event.");
-          return;
-        }
-        
-        console.error("No known method to load ROM found: neither retroboy.loadROM, emulator.loadROM, nor a file input element exists.");
-      } catch (error) {
-        console.error("Error loading default ROM:", error);
-      }
-    }, 500); // 500ms delay (adjust if necessary)
-  });
-</script>
-<script>
-  window.addEventListener('load', function() {
-    // 1) Hide the instructions text (the paragraph that starts "Retro Boy is a Game Boy emulator...")
-    let instructions = [...document.querySelectorAll("p")].find(
-      p => p.innerText && p.innerText.includes("Retro Boy is a Game Boy emulator")
-    );
-    if (instructions) {
-      instructions.style.display = "none";
-    }
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/retroboy/favicon.ico" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Web site created using create-react-app" />
+    <link rel="apple-touch-icon" href="/retroboy/logo192.png" />
+    <link rel="manifest" href="/retroboy/manifest.json" />
+    <title>Retro Boy</title>
+    <script defer src="/retroboy/static/js/main.924a52ff.js"></script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
 
-    // 2) Hide the "Load ROM" button
-    let loadRomButton = [...document.querySelectorAll("button")].find(
-      b => b.innerText.trim().toLowerCase() === "load rom"
-    );
-    if (loadRomButton) {
-      loadRomButton.style.display = "none";
-    }
-
-    // 3) Hide the "CONTROLS" button
-    let controlsButton = [...document.querySelectorAll("button")].find(
-      b => b.innerText.trim().toLowerCase() === "controls"
-    );
-    if (controlsButton) {
-      controlsButton.style.display = "none";
-    }
-
-    // 4) Hide the "CHEATS" button
-    let cheatsButton = [...document.querySelectorAll("button")].find(
-      b => b.innerText.trim().toLowerCase() === "cheats"
-    );
-    if (cheatsButton) {
-      cheatsButton.style.display = "none";
-    }
-
-    // 5) Force COLOR mode by clicking the "COLOR" button
-    let colorButton = [...document.querySelectorAll("button")].find(
-      b => b.innerText.trim().toLowerCase() === "color"
-    );
-    if (colorButton) {
-      colorButton.click();
-      console.log("Switched to COLOR mode by default.");
-    } else {
-      console.warn("COLOR button not found; cannot auto‐select color mode.");
-    }
-  });
-</script>
-<script>
-  window.addEventListener('load', function() {
-    // Delay a short time to ensure all elements are rendered.
-    setTimeout(function() {
-      // --- Hide UI Elements ---
-      
-      // 1. Hide the RetroBoy logo.
-      //    Looks for an image with "RetroBoy" in its alt text or a CSS class named "logo".
-      var logo = document.querySelector('img[alt*="RetroBoy"]') || document.querySelector('.logo');
-      if (logo) {
-        logo.style.display = 'none';
-        console.log("RetroBoy logo hidden.");
-      }
-      
-      // 2. Hide the current room name.
-      //    This searches for any element whose text includes "Room".
-      var roomName = [...document.querySelectorAll("*")].find(function(el) {
-        return el.innerText && el.innerText.includes("Room");
+    <!-- Farcaster SDK Loader -->
+    <script type="module">
+      import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
+      window.addEventListener('load', async () => {
+        console.log("App loaded: calling sdk.actions.ready()");
+        await sdk.actions.ready();
       });
-      if (roomName) {
-        roomName.style.display = 'none';
-        console.log("Current room name hidden.");
-      }
-      
-      // 3. Hide the toggle for monochrome and color modes.
-      //    Assumes the toggle is a button that contains "mono" or "color" in its text.
-      var toggle = [...document.querySelectorAll("button")].find(function(b) {
-        return b.innerText && (b.innerText.toLowerCase().includes("mono") || b.innerText.toLowerCase().includes("color"));
+    </script>
+
+    <!-- Combined Inline Script: Load default ROM and modify UI -->
+    <script>
+      window.addEventListener('load', async function () {
+        // Wait 500ms to ensure all elements and scripts are fully rendered.
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // 1. Load Default ROM
+        try {
+          console.log("Attempting to load default ROM...");
+          const response = await fetch('https://ferranrego.github.io/retroboy/roms/default.gb');
+          if (!response.ok) {
+            throw new Error("Network response was not ok: " + response.status);
+          }
+          const buffer = await response.arrayBuffer();
+          const romData = new Uint8Array(buffer);
+
+          // Try method 1: Use global 'retroboy' object if available.
+          if (window.retroboy && typeof window.retroboy.loadROM === 'function') {
+            window.retroboy.loadROM(romData);
+            console.log("Default ROM loaded via retroboy.loadROM()");
+          }
+          // Try method 2: Use global 'emulator' object if available.
+          else if (window.emulator && typeof window.emulator.loadROM === 'function') {
+            window.emulator.loadROM(romData);
+            console.log("Default ROM loaded via emulator.loadROM()");
+          }
+          // Try method 3: Simulate file input selection if available.
+          else {
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput) {
+              const blob = new Blob([romData], { type: "application/octet-stream" });
+              const file = new File([blob], "default.gb", { type: "application/octet-stream" });
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(file);
+              fileInput.files = dataTransfer.files;
+              fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+              console.log("Default ROM loaded by simulating file input change event.");
+            } else {
+              console.error("No known method to load ROM found.");
+            }
+          }
+        } catch (error) {
+          console.error("Error loading default ROM:", error);
+        }
+
+        // 2. Hide Unwanted UI Elements
+
+        // Hide "Load ROM" button.
+        const loadRomButton = [...document.querySelectorAll("button")].find(b =>
+          b.innerText.trim().toLowerCase() === "load rom"
+        );
+        if (loadRomButton) loadRomButton.style.display = "none";
+
+        // Hide "CONTROLS" button.
+        const controlsButton = [...document.querySelectorAll("button")].find(b =>
+          b.innerText.trim().toLowerCase() === "controls"
+        );
+        if (controlsButton) controlsButton.style.display = "none";
+
+        // Hide "CHEATS" button.
+        const cheatsButton = [...document.querySelectorAll("button")].find(b =>
+          b.innerText.trim().toLowerCase() === "cheats"
+        );
+        if (cheatsButton) cheatsButton.style.display = "none";
+
+        // Hide the RetroBoy logo.
+        const logo = document.querySelector('img[alt*="RetroBoy"]') || document.querySelector('.logo');
+        if (logo) {
+          logo.style.display = "none";
+          console.log("RetroBoy logo hidden.");
+        }
+
+        // Hide current room name (assumes an element contains "Room").
+        const roomName = [...document.querySelectorAll("*")].find(el =>
+          el.innerText && el.innerText.includes("Room")
+        );
+        if (roomName) {
+          roomName.style.display = "none";
+          console.log("Current room name hidden.");
+        }
+
+        // Hide the entire toggle for monochrome/color mode.
+        const toggle = [...document.querySelectorAll("button")].find(b =>
+          b.innerText && (b.innerText.toLowerCase().includes("mono") || b.innerText.toLowerCase().includes("color"))
+        );
+        if (toggle) {
+          toggle.style.display = "none";
+          console.log("Color/Mono toggle hidden.");
+        }
       });
-      if (toggle) {
-        toggle.style.display = 'none';
-        console.log("Color/Mono toggle hidden.");
-      }
-      
-      // --- Add the FARBOY Title ---
-      
-      // Create an H1 element with the text "FARBOY".
-      var title = document.createElement('h1');
-      title.innerText = 'FARBOY';
-      // Apply retro typography and styling. Adjust fontFamily if your project already loads a retro font.
-      title.style.fontFamily = '"Press Start 2P", cursive';  // Ensure this font is loaded or adjust as needed.
-      title.style.fontSize = '48px';
-      title.style.textAlign = 'center';
-      title.style.margin = '20px 0';
-      
-      // Insert the title at the very top of the body.
-      document.body.insertBefore(title, document.body.firstChild);
-      console.log("FARBOY title inserted.");
-    }, 500); // Adjust delay if necessary.
-  });
-</script>
-
-
-</body></html>
+    </script>
+  </body>
+</html>
