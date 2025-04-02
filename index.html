@@ -7,4 +7,38 @@
     await sdk.actions.ready();
   });
 </script>
+<script>
+  // Wait for the page to fully load so the emulator is initialized.
+  window.addEventListener('load', function() {
+    // Delay a little to ensure everything is ready (adjust delay if needed)
+    setTimeout(function() {
+      console.log("Attempting to load default ROM...");
+      // Fetch the ROM from the specified URL.
+      fetch('https://ferranrego.github.io/retroboy/roms/default.gb')
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+          }
+          return response.arrayBuffer();
+        })
+        .then(function(arrayBuffer) {
+          // Convert the ROM data to a format the emulator can use.
+          var romData = new Uint8Array(arrayBuffer);
+          // Call the emulator's function to load the ROM.
+          // IMPORTANT: If your emulator’s loading function has a different name,
+          // replace 'emulator.loadROM' with the correct function call.
+          if (typeof emulator !== 'undefined' && typeof emulator.loadROM === 'function') {
+            emulator.loadROM(romData);
+            console.log("Default ROM loaded successfully.");
+          } else {
+            console.error("Emulator object or loadROM function not found.");
+          }
+        })
+        .catch(function(error) {
+          console.error("Failed to load default ROM:", error);
+        });
+    }, 500); // Delay in milliseconds (500ms here)
+  });
+</script>
+
 </body></html>
