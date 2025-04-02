@@ -8,37 +8,58 @@
   });
 </script>
 <script>
-  // Wait for the page to fully load so the emulator is initialized.
+  // Wait for the page (and hopefully the emulator) to fully load.
   window.addEventListener('load', function() {
-    // Delay a little to ensure everything is ready (adjust delay if needed)
-    setTimeout(function() {
+    // A short delay to help ensure all scripts and elements are ready.
+    setTimeout(async function() {
       console.log("Attempting to load default ROM...");
-      // Fetch the ROM from the specified URL.
-      fetch('https://ferranrego.github.io/retroboy/roms/default.gb')
-        .then(function(response) {
-          if (!response.ok) {
-            throw new Error('Network response was not ok: ' + response.status);
-          }
-          return response.arrayBuffer();
-        })
-        .then(function(arrayBuffer) {
-          // Convert the ROM data to a format the emulator can use.
-          var romData = new Uint8Array(arrayBuffer);
-          // Call the emulator's function to load the ROM.
-          // IMPORTANT: If your emulator’s loading function has a different name,
-          // replace 'emulator.loadROM' with the correct function call.
-          if (typeof emulator !== 'undefined' && typeof emulator.loadROM === 'function') {
-            emulator.loadROM(romData);
-            console.log("Default ROM loaded successfully.");
-          } else {
-            console.error("Emulator object or loadROM function not found.");
-          }
-        })
-        .catch(function(error) {
-          console.error("Failed to load default ROM:", error);
-        });
-    }, 500); // Delay in milliseconds (500ms here)
+      try {
+        // Fetch the ROM file.
+        const response = await fetch('https://ferranrego.github.io/retroboy/roms/default.gb');
+        if (!response.ok) {
+          throw new Error("Network response was not ok: " + response.status);
+        }
+        const buffer = await response.arrayBuffer();
+        const romData = new Uint8Array(buffer);
+        
+        // Try method 1: Check if a global 'retroboy' object with a loadROM method exists.
+        if (window.retroboy && typeof window.retroboy.loadROM === 'function') {
+          window.retroboy.loadROM(romData);
+          console.log("Default ROM loaded via retroboy.loadROM()");
+          return;
+        }
+        
+        // Try method 2: Check for an 'emulator' global object with a loadROM function.
+        if (window.emulator && typeof window.emulator.loadROM === 'function') {
+          window.emulator.loadROM(romData);
+          console.log("Default ROM loaded via emulator.loadROM()");
+          return;
+        }
+        
+        // Try method 3: If there’s a file input element for ROM loading, simulate a file selection.
+        var fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+          // Create a Blob and then a File from the ROM data.
+          const blob = new Blob([romData], { type: "application/octet-stream" });
+          const file = new File([blob], "default.gb", { type: "application/octet-stream" });
+          // Create a DataTransfer to mimic a user selecting the file.
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          fileInput.files = dataTransfer.files;
+          // Dispatch a change event to trigger the ROM load.
+          var event = new Event('change', { bubbles: true });
+          fileInput.dispatchEvent(event);
+          console.log("Default ROM loaded by simulating file input change event.");
+          return;
+        }
+        
+        console.error("No known method to load ROM found: neither retroboy.loadROM, emulator.loadROM, nor a file input element exists.");
+      } catch (error) {
+        console.error("Error loading default ROM:", error);
+      }
+    }, 500); // 500ms delay (adjust if necessary)
   });
 </script>
+
 
 </body></html>
