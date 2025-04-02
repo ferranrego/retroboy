@@ -28,9 +28,9 @@
     <!-- Combined Inline Script: Load default ROM and modify UI -->
     <script>
       window.addEventListener('load', async function () {
-        // Wait 500ms to ensure all elements and scripts are rendered.
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
+        // Wait 1500ms to allow React and dynamic elements to finish rendering.
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
         // 1. Load Default ROM
         try {
           console.log("Attempting to load default ROM...");
@@ -65,9 +65,9 @@
           console.error("Error loading default ROM:", error);
         }
         
-        // 2. UI Modifications: Hide unwanted UI elements
-        
-        // (a) Hide description paragraphs that explain how to use Retro Boy.
+        // 2. Hide Unwanted UI Elements
+
+        // (a) Hide description paragraphs (instructional text)
         document.querySelectorAll("p").forEach(p => {
           let txt = p.innerText.toLowerCase();
           if (txt.includes("retro boy is a game boy emulator") &&
@@ -78,27 +78,43 @@
           }
         });
         
-        // (b) Hide the element that displays the current ROM name.
-        // Based on the source code, this element uses a class or ID like "rom-name" or "rom-info".
-        const romNameElement = document.querySelector('.rom-name') ||
-                               document.querySelector('.rom-info') ||
-                               document.querySelector('#rom-name');
-        if (romNameElement) {
-          romNameElement.style.display = "none";
-          console.log("ROM name element hidden.");
+        // (b) Hide the element that displays the ROM name.
+        // Try hiding a container if present.
+        let statusBar = document.getElementById("status-bar");
+        if (statusBar) {
+          // Optionally, if you want to hide only the separator and ROM name inside the status bar:
+          let romNameEl = statusBar.querySelector(".romName, .rom-info");
+          let separatorEl = statusBar.querySelector(".separator");
+          if (romNameEl) {
+            romNameEl.style.display = "none";
+            console.log("ROM name hidden.");
+          }
+          if (separatorEl) {
+            separatorEl.style.display = "none";
+            console.log("Separator hidden.");
+          }
+          // Alternatively, hide the entire status bar:
+          // statusBar.style.display = "none";
+        } else {
+          // Fallback: hide any element with class "romName" or "separator"
+          document.querySelectorAll(".romName, .rom-info, .separator").forEach(el => {
+            el.style.display = "none";
+            console.log("Fallback: element hidden (romName/separator).");
+          });
         }
         
-        // (c) Additionally, hide any element that shows a filename containing ".gb" or ".gbc"
+        // (c) Hide any element that shows a filename containing ".gb" or ".gbc"
         document.querySelectorAll("*").forEach(el => {
           if (el.innerText && (el.innerText.includes(".gb") || el.innerText.includes(".gbc"))) {
+            // Exclude the Play button.
             if (!(el.tagName.toLowerCase() === "button" && el.innerText.trim().toLowerCase() === "play")) {
               el.style.display = "none";
-              console.log("Element with ROM filename hidden.");
+              console.log("Fallback: element with ROM filename hidden.");
             }
           }
         });
         
-        // (d) Hide any element that contains the word "room".
+        // (d) Hide any element that contains the word "room"
         document.querySelectorAll("*").forEach(el => {
           if (el.innerText && el.innerText.toLowerCase().includes("room")) {
             el.style.display = "none";
@@ -106,7 +122,7 @@
           }
         });
         
-        // (e) Hide all buttons except the one with text "play".
+        // (e) Hide all buttons except the Play button.
         document.querySelectorAll("button").forEach(btn => {
           if (btn.innerText.trim().toLowerCase() !== "play") {
             btn.style.display = "none";
