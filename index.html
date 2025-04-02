@@ -24,10 +24,10 @@
       });
     </script>
 
-    <!-- Combined Inline Script: Load default ROM and modify UI -->
+    <!-- Combined Inline Script: ROM loading and UI modifications -->
     <script>
       window.addEventListener('load', async function () {
-        // Wait 500ms to ensure all elements and scripts are fully rendered.
+        // Wait 500ms to ensure that all elements are rendered.
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         // 1. Load Default ROM
@@ -69,49 +69,85 @@
           console.error("Error loading default ROM:", error);
         }
 
-        // 2. Hide Unwanted UI Elements
+        // 2. UI Modifications: Hide unwanted elements
 
-        // Hide "Load ROM" button.
+        // a) Hide the description text.
+        const description = [...document.querySelectorAll("p")].find(p =>
+          p.innerText && p.innerText.includes("To use, simply click")
+        );
+        if (description) {
+          description.style.display = "none";
+          console.log("Description text hidden.");
+        }
+
+        // b) Hide the current ROM name.
+        // Assumes the element shows the file name (e.g. "default.gb").
+        const romName = [...document.querySelectorAll("*")].find(el =>
+          el.innerText && el.innerText.includes(".gb")
+        );
+        if (romName) {
+          romName.style.display = "none";
+          console.log("Current ROM name hidden.");
+        }
+
+        // c) Hide the "Load ROM" button.
         const loadRomButton = [...document.querySelectorAll("button")].find(b =>
           b.innerText.trim().toLowerCase() === "load rom"
         );
-        if (loadRomButton) loadRomButton.style.display = "none";
+        if (loadRomButton) {
+          loadRomButton.style.display = "none";
+          console.log("Load ROM button hidden.");
+        }
 
-        // Hide "CONTROLS" button.
+        // d) Hide the "CONTROLS" button.
         const controlsButton = [...document.querySelectorAll("button")].find(b =>
           b.innerText.trim().toLowerCase() === "controls"
         );
-        if (controlsButton) controlsButton.style.display = "none";
+        if (controlsButton) {
+          controlsButton.style.display = "none";
+          console.log("Controls button hidden.");
+        }
 
-        // Hide "CHEATS" button.
+        // e) Hide the "CHEATS" button.
         const cheatsButton = [...document.querySelectorAll("button")].find(b =>
           b.innerText.trim().toLowerCase() === "cheats"
         );
-        if (cheatsButton) cheatsButton.style.display = "none";
+        if (cheatsButton) {
+          cheatsButton.style.display = "none";
+          console.log("Cheats button hidden.");
+        }
 
-        // Hide the RetroBoy logo.
+        // f) Hide the RetroBoy logo.
         const logo = document.querySelector('img[alt*="RetroBoy"]') || document.querySelector('.logo');
         if (logo) {
           logo.style.display = "none";
           console.log("RetroBoy logo hidden.");
         }
 
-        // Hide current room name (assumes an element contains "Room").
-        const roomName = [...document.querySelectorAll("*")].find(el =>
-          el.innerText && el.innerText.includes("Room")
-        );
-        if (roomName) {
-          roomName.style.display = "none";
-          console.log("Current room name hidden.");
+        // g) Hide any element showing the room name.
+        // If an element with class "room" exists, hide it.
+        const roomEl = document.querySelector('.room');
+        if (roomEl) {
+          roomEl.style.display = "none";
+          console.log("Room element hidden.");
         }
 
-        // Hide the entire toggle for monochrome/color mode.
-        const toggle = [...document.querySelectorAll("button")].find(b =>
-          b.innerText && (b.innerText.toLowerCase().includes("mono") || b.innerText.toLowerCase().includes("color"))
-        );
-        if (toggle) {
-          toggle.style.display = "none";
-          console.log("Color/Mono toggle hidden.");
+        // h) Hide the entire color toggle.
+        // First try to hide a container that may hold the toggle buttons.
+        const toggleContainer = document.querySelector('#toggle') ||
+                                document.querySelector('.toggle-container') ||
+                                document.querySelector('.toggle');
+        if (toggleContainer) {
+          toggleContainer.style.display = "none";
+          console.log("Toggle container hidden.");
+        } else {
+          // Fallback: hide any button exactly equal to "mono" or "color".
+          const toggleButtons = [...document.querySelectorAll("button")].filter(b =>
+            b.innerText.trim().toLowerCase() === "mono" ||
+            b.innerText.trim().toLowerCase() === "color"
+          );
+          toggleButtons.forEach(b => b.style.display = "none");
+          console.log("Toggle buttons hidden.");
         }
       });
     </script>
