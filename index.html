@@ -60,6 +60,52 @@
     }, 500); // 500ms delay (adjust if necessary)
   });
 </script>
+<script>
+  window.addEventListener('load', function() {
+    // 1) Hide the instructions text (the paragraph that starts "Retro Boy is a Game Boy emulator...")
+    let instructions = [...document.querySelectorAll("p")].find(
+      p => p.innerText && p.innerText.includes("Retro Boy is a Game Boy emulator")
+    );
+    if (instructions) {
+      instructions.style.display = "none";
+    }
+
+    // 2) Hide the "Load ROM" button
+    let loadRomButton = [...document.querySelectorAll("button")].find(
+      b => b.innerText.trim().toLowerCase() === "load rom"
+    );
+    if (loadRomButton) {
+      loadRomButton.style.display = "none";
+    }
+
+    // 3) Hide the "CONTROLS" button
+    let controlsButton = [...document.querySelectorAll("button")].find(
+      b => b.innerText.trim().toLowerCase() === "controls"
+    );
+    if (controlsButton) {
+      controlsButton.style.display = "none";
+    }
+
+    // 4) Hide the "CHEATS" button
+    let cheatsButton = [...document.querySelectorAll("button")].find(
+      b => b.innerText.trim().toLowerCase() === "cheats"
+    );
+    if (cheatsButton) {
+      cheatsButton.style.display = "none";
+    }
+
+    // 5) Force COLOR mode by clicking the "COLOR" button
+    let colorButton = [...document.querySelectorAll("button")].find(
+      b => b.innerText.trim().toLowerCase() === "color"
+    );
+    if (colorButton) {
+      colorButton.click();
+      console.log("Switched to COLOR mode by default.");
+    } else {
+      console.warn("COLOR button not found; cannot auto‐select color mode.");
+    }
+  });
+</script>
 
 
 </body></html>
