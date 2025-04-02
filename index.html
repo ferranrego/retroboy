@@ -13,9 +13,8 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <!-- The main emulator UI is rendered inside this container -->
     <div id="root"></div>
-    
+
     <!-- Farcaster SDK Loader -->
     <script type="module">
       import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
@@ -24,13 +23,13 @@
         await sdk.actions.ready();
       });
     </script>
-    
-    <!-- Combined Inline Script: Load default ROM and continuously hide unwanted UI elements -->
+
+    <!-- Combined Inline Script: ROM loading and UI modifications -->
     <script>
       window.addEventListener('load', async function () {
-        // Wait 1500ms to allow dynamic UI elements to render.
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
+        // Wait 500ms to ensure that all elements are rendered.
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         // 1. Load Default ROM
         try {
           console.log("Attempting to load default ROM...");
@@ -40,14 +39,19 @@
           }
           const buffer = await response.arrayBuffer();
           const romData = new Uint8Array(buffer);
-          
+
+          // Try method 1: Use global 'retroboy' object if available.
           if (window.retroboy && typeof window.retroboy.loadROM === 'function') {
             window.retroboy.loadROM(romData);
             console.log("Default ROM loaded via retroboy.loadROM()");
-          } else if (window.emulator && typeof window.emulator.loadROM === 'function') {
+          }
+          // Try method 2: Use global 'emulator' object if available.
+          else if (window.emulator && typeof window.emulator.loadROM === 'function') {
             window.emulator.loadROM(romData);
             console.log("Default ROM loaded via emulator.loadROM()");
-          } else {
+          }
+          // Try method 3: Simulate file input selection if available.
+          else {
             const fileInput = document.querySelector('input[type="file"]');
             if (fileInput) {
               const blob = new Blob([romData], { type: "application/octet-stream" });
@@ -64,54 +68,88 @@
         } catch (error) {
           console.error("Error loading default ROM:", error);
         }
-        
-        // 2. Function to hide unwanted UI elements
-        function hideUnwantedElements() {
-          // (a) Hide description paragraphs that explain how to use Retro Boy.
-          document.querySelectorAll("p").forEach(p => {
-            let txt = p.innerText.toLowerCase();
-            if (txt.includes("retro boy is a game boy emulator") &&
-                txt.includes("load rom") &&
-                txt.includes("play")) {
-              p.style.display = "none";
-            }
-          });
-          
-          // (b) Hide elements that display the ROM name and separator.
-          // Try common selectors: elements with classes "romName", "rom-info", "separator"
-          document.querySelectorAll(".romName, .rom-info, .separator").forEach(el => {
-            el.style.display = "none";
-          });
-          
-          // (c) Hide any element containing a filename (".gb" or ".gbc") unless it's the play button.
-          document.querySelectorAll("*").forEach(el => {
-            if (el.innerText && (el.innerText.includes(".gb") || el.innerText.includes(".gbc"))) {
-              if (!(el.tagName.toLowerCase() === "button" && el.innerText.trim().toLowerCase() === "play")) {
-                el.style.display = "none";
-              }
-            }
-          });
-          
-          // (d) Hide any element that contains the word "room" (case-insensitive).
-          document.querySelectorAll("*").forEach(el => {
-            if (el.innerText && el.innerText.toLowerCase().includes("room")) {
-              el.style.display = "none";
-            }
-          });
-          
-          // (e) Hide all buttons except the one with text "play".
-          document.querySelectorAll("button").forEach(btn => {
-            if (btn.innerText.trim().toLowerCase() !== "play") {
-              btn.style.display = "none";
-            }
-          });
+
+        // 2. UI Modifications: Hide unwanted elements
+
+        // a) Hide the description text.
+        const description = [...document.querySelectorAll("p")].find(p =>
+          p.innerText && p.innerText.includes("To use, simply click")
+        );
+        if (description) {
+          description.style.display = "none";
+          console.log("Description text hidden.");
         }
-        
-        // Run it once after the delay.
-        hideUnwantedElements();
-        
-        // 3. Set up a MutationObserver to continuously hide unwanted elements in case they are re‑inserted.
-        const observer = new MutationObserver(() => {
-          hideUnwantedElements();
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
+
+        // b) Hide the current ROM name.
+        // Assumes the element shows the file name (e.g. "default.gb").
+        const romName = [...document.querySelectorAll("*")].find(el =>
+          el.innerText && el.innerText.includes(".gb")
+        );
+        if (romName) {
+          romName.style.display = "none";
+          console.log("Current ROM name hidden.");
+        }
+
+        // c) Hide the "Load ROM" button.
+        const loadRomButton = [...document.querySelectorAll("button")].find(b =>
+          b.innerText.trim().toLowerCase() === "load rom"
+        );
+        if (loadRomButton) {
+          loadRomButton.style.display = "none";
+          console.log("Load ROM button hidden.");
+        }
+
+        // d) Hide the "CONTROLS" button.
+        const controlsButton = [...document.querySelectorAll("button")].find(b =>
+          b.innerText.trim().toLowerCase() === "controls"
+        );
+        if (controlsButton) {
+          controlsButton.style.display = "none";
+          console.log("Controls button hidden.");
+        }
+
+        // e) Hide the "CHEATS" button.
+        const cheatsButton = [...document.querySelectorAll("button")].find(b =>
+          b.innerText.trim().toLowerCase() === "cheats"
+        );
+        if (cheatsButton) {
+          cheatsButton.style.display = "none";
+          console.log("Cheats button hidden.");
+        }
+
+        // f) Hide the RetroBoy logo.
+        const logo = document.querySelector('img[alt*="RetroBoy"]') || document.querySelector('.logo');
+        if (logo) {
+          logo.style.display = "none";
+          console.log("RetroBoy logo hidden.");
+        }
+
+        // g) Hide any element showing the room name.
+        // If an element with class "room" exists, hide it.
+        const roomEl = document.querySelector('.room');
+        if (roomEl) {
+          roomEl.style.display = "none";
+          console.log("Room element hidden.");
+        }
+
+        // h) Hide the entire color toggle.
+        // First try to hide a container that may hold the toggle buttons.
+        const toggleContainer = document.querySelector('#toggle') ||
+                                document.querySelector('.toggle-container') ||
+                                document.querySelector('.toggle');
+        if (toggleContainer) {
+          toggleContainer.style.display = "none";
+          console.log("Toggle container hidden.");
+        } else {
+          // Fallback: hide any button exactly equal to "mono" or "color".
+          const toggleButtons = [...document.querySelectorAll("button")].filter(b =>
+            b.innerText.trim().toLowerCase() === "mono" ||
+            b.innerText.trim().toLowerCase() === "color"
+          );
+          toggleButtons.forEach(b => b.style.display = "none");
+          console.log("Toggle buttons hidden.");
+        }
+      });
+    </script>
+  </body>
+</html>
