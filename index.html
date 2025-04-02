@@ -25,12 +25,12 @@
       });
     </script>
     
-    <!-- Combined Inline Script: Load default ROM and modify UI -->
+    <!-- Combined Inline Script: Load default ROM and continuously hide unwanted UI elements -->
     <script>
       window.addEventListener('load', async function () {
-        // Wait 1500ms to allow React and dynamic elements to finish rendering.
+        // Wait 1500ms to allow dynamic UI elements to render.
         await new Promise(resolve => setTimeout(resolve, 1500));
-
+        
         // 1. Load Default ROM
         try {
           console.log("Attempting to load default ROM...");
@@ -65,71 +65,53 @@
           console.error("Error loading default ROM:", error);
         }
         
-        // 2. Hide Unwanted UI Elements
-
-        // (a) Hide description paragraphs (instructional text)
-        document.querySelectorAll("p").forEach(p => {
-          let txt = p.innerText.toLowerCase();
-          if (txt.includes("retro boy is a game boy emulator") &&
-              txt.includes("load rom") &&
-              txt.includes("play")) {
-            p.style.display = "none";
-            console.log("Description paragraph hidden.");
-          }
-        });
-        
-        // (b) Hide the element that displays the ROM name.
-        // Try hiding a container if present.
-        let statusBar = document.getElementById("status-bar");
-        if (statusBar) {
-          // Optionally, if you want to hide only the separator and ROM name inside the status bar:
-          let romNameEl = statusBar.querySelector(".romName, .rom-info");
-          let separatorEl = statusBar.querySelector(".separator");
-          if (romNameEl) {
-            romNameEl.style.display = "none";
-            console.log("ROM name hidden.");
-          }
-          if (separatorEl) {
-            separatorEl.style.display = "none";
-            console.log("Separator hidden.");
-          }
-          // Alternatively, hide the entire status bar:
-          // statusBar.style.display = "none";
-        } else {
-          // Fallback: hide any element with class "romName" or "separator"
+        // 2. Function to hide unwanted UI elements
+        function hideUnwantedElements() {
+          // (a) Hide description paragraphs that explain how to use Retro Boy.
+          document.querySelectorAll("p").forEach(p => {
+            let txt = p.innerText.toLowerCase();
+            if (txt.includes("retro boy is a game boy emulator") &&
+                txt.includes("load rom") &&
+                txt.includes("play")) {
+              p.style.display = "none";
+            }
+          });
+          
+          // (b) Hide elements that display the ROM name and separator.
+          // Try common selectors: elements with classes "romName", "rom-info", "separator"
           document.querySelectorAll(".romName, .rom-info, .separator").forEach(el => {
             el.style.display = "none";
-            console.log("Fallback: element hidden (romName/separator).");
+          });
+          
+          // (c) Hide any element containing a filename (".gb" or ".gbc") unless it's the play button.
+          document.querySelectorAll("*").forEach(el => {
+            if (el.innerText && (el.innerText.includes(".gb") || el.innerText.includes(".gbc"))) {
+              if (!(el.tagName.toLowerCase() === "button" && el.innerText.trim().toLowerCase() === "play")) {
+                el.style.display = "none";
+              }
+            }
+          });
+          
+          // (d) Hide any element that contains the word "room" (case-insensitive).
+          document.querySelectorAll("*").forEach(el => {
+            if (el.innerText && el.innerText.toLowerCase().includes("room")) {
+              el.style.display = "none";
+            }
+          });
+          
+          // (e) Hide all buttons except the one with text "play".
+          document.querySelectorAll("button").forEach(btn => {
+            if (btn.innerText.trim().toLowerCase() !== "play") {
+              btn.style.display = "none";
+            }
           });
         }
         
-        // (c) Hide any element that shows a filename containing ".gb" or ".gbc"
-        document.querySelectorAll("*").forEach(el => {
-          if (el.innerText && (el.innerText.includes(".gb") || el.innerText.includes(".gbc"))) {
-            // Exclude the Play button.
-            if (!(el.tagName.toLowerCase() === "button" && el.innerText.trim().toLowerCase() === "play")) {
-              el.style.display = "none";
-              console.log("Fallback: element with ROM filename hidden.");
-            }
-          }
-        });
+        // Run it once after the delay.
+        hideUnwantedElements();
         
-        // (d) Hide any element that contains the word "room"
-        document.querySelectorAll("*").forEach(el => {
-          if (el.innerText && el.innerText.toLowerCase().includes("room")) {
-            el.style.display = "none";
-            console.log("Room element hidden.");
-          }
+        // 3. Set up a MutationObserver to continuously hide unwanted elements in case they are re‑inserted.
+        const observer = new MutationObserver(() => {
+          hideUnwantedElements();
         });
-        
-        // (e) Hide all buttons except the Play button.
-        document.querySelectorAll("button").forEach(btn => {
-          if (btn.innerText.trim().toLowerCase() !== "play") {
-            btn.style.display = "none";
-            console.log("Non-play button hidden: " + btn.innerText);
-          }
-        });
-      });
-    </script>
-  </body>
-</html>
+        observer.observe(document.body, { childList: true, subtree: true });
