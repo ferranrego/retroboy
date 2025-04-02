@@ -34,7 +34,7 @@
         // 1. Load Default ROM
         try {
           console.log("Attempting to load default ROM...");
-          const response = await fetch('https://ferranrego.github.io/retroboy/roms/default.gb');
+          const response = await fetch('https://ferranrego.github.io/retroboy/roms/farcaster_thegame.gb');
           if (!response.ok) {
             throw new Error("Network response was not ok: " + response.status);
           }
