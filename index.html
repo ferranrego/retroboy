@@ -25,7 +25,7 @@
       });
     </script>
     
-    <!-- Inline Script: Load default ROM and hide unwanted UI elements -->
+    <!-- Combined Inline Script: Load default ROM and modify UI -->
     <script>
       window.addEventListener('load', async function () {
         // Wait 500ms to ensure all elements and scripts are rendered.
@@ -65,7 +65,7 @@
           console.error("Error loading default ROM:", error);
         }
         
-        // 2. UI Modifications: Hide all unwanted UI elements
+        // 2. UI Modifications: Hide unwanted UI elements
         
         // (a) Hide description paragraphs that explain how to use Retro Boy.
         document.querySelectorAll("p").forEach(p => {
@@ -78,10 +78,19 @@
           }
         });
         
-        // (b) Hide any element displaying the current ROM name (assumed to include ".gb" or ".gbc")
+        // (b) Hide the element that displays the current ROM name.
+        // Based on the source code, this element uses a class or ID like "rom-name" or "rom-info".
+        const romNameElement = document.querySelector('.rom-name') ||
+                               document.querySelector('.rom-info') ||
+                               document.querySelector('#rom-name');
+        if (romNameElement) {
+          romNameElement.style.display = "none";
+          console.log("ROM name element hidden.");
+        }
+        
+        // (c) Additionally, hide any element that shows a filename containing ".gb" or ".gbc"
         document.querySelectorAll("*").forEach(el => {
           if (el.innerText && (el.innerText.includes(".gb") || el.innerText.includes(".gbc"))) {
-            // Do not affect the play button.
             if (!(el.tagName.toLowerCase() === "button" && el.innerText.trim().toLowerCase() === "play")) {
               el.style.display = "none";
               console.log("Element with ROM filename hidden.");
@@ -89,7 +98,7 @@
           }
         });
         
-        // (c) Hide any element that contains the word "room"
+        // (d) Hide any element that contains the word "room".
         document.querySelectorAll("*").forEach(el => {
           if (el.innerText && el.innerText.toLowerCase().includes("room")) {
             el.style.display = "none";
@@ -97,7 +106,7 @@
           }
         });
         
-        // (d) Hide all buttons except the one with text "play"
+        // (e) Hide all buttons except the one with text "play".
         document.querySelectorAll("button").forEach(btn => {
           if (btn.innerText.trim().toLowerCase() !== "play") {
             btn.style.display = "none";
