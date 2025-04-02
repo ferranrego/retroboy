@@ -106,6 +106,57 @@
     }
   });
 </script>
+<script>
+  window.addEventListener('load', function() {
+    // Delay a short time to ensure all elements are rendered.
+    setTimeout(function() {
+      // --- Hide UI Elements ---
+      
+      // 1. Hide the RetroBoy logo.
+      //    Looks for an image with "RetroBoy" in its alt text or a CSS class named "logo".
+      var logo = document.querySelector('img[alt*="RetroBoy"]') || document.querySelector('.logo');
+      if (logo) {
+        logo.style.display = 'none';
+        console.log("RetroBoy logo hidden.");
+      }
+      
+      // 2. Hide the current room name.
+      //    This searches for any element whose text includes "Room".
+      var roomName = [...document.querySelectorAll("*")].find(function(el) {
+        return el.innerText && el.innerText.includes("Room");
+      });
+      if (roomName) {
+        roomName.style.display = 'none';
+        console.log("Current room name hidden.");
+      }
+      
+      // 3. Hide the toggle for monochrome and color modes.
+      //    Assumes the toggle is a button that contains "mono" or "color" in its text.
+      var toggle = [...document.querySelectorAll("button")].find(function(b) {
+        return b.innerText && (b.innerText.toLowerCase().includes("mono") || b.innerText.toLowerCase().includes("color"));
+      });
+      if (toggle) {
+        toggle.style.display = 'none';
+        console.log("Color/Mono toggle hidden.");
+      }
+      
+      // --- Add the FARBOY Title ---
+      
+      // Create an H1 element with the text "FARBOY".
+      var title = document.createElement('h1');
+      title.innerText = 'FARBOY';
+      // Apply retro typography and styling. Adjust fontFamily if your project already loads a retro font.
+      title.style.fontFamily = '"Press Start 2P", cursive';  // Ensure this font is loaded or adjust as needed.
+      title.style.fontSize = '48px';
+      title.style.textAlign = 'center';
+      title.style.margin = '20px 0';
+      
+      // Insert the title at the very top of the body.
+      document.body.insertBefore(title, document.body.firstChild);
+      console.log("FARBOY title inserted.");
+    }, 500); // Adjust delay if necessary.
+  });
+</script>
 
 
 </body></html>
